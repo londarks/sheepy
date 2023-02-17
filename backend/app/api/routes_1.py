@@ -1,16 +1,12 @@
 from fastapi import APIRouter
 import logging
-import aiohttp
-import sys
-
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 router = APIRouter()
-# Database = SessionLocal()
 
 
-@router.get("/", tags=["Obsignal"])
+@router.get("/", tags=["Sheepy"])
 async def home():
     """ Teste function"""
     return {"Helloe word"}
