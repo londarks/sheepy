@@ -1,0 +1,11 @@
+*.db
+*.egg-info
+*.session
+build/
+dist/
+node_modules/
+.env
+venv/
+test/
+teste/
+__pycache__/
