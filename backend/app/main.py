@@ -2,7 +2,7 @@ import uvicorn
 import logging
 
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI
 from config import APP_NAME, APP_DESCRIPTION, APP_VERSION, APP_TERMS_OF_SERVICE, APP_CONTACT_NAME, APP_CONTACT_EMAIL
 
 from api import item_router

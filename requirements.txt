@@ -1,3 +1,2 @@
-aiohttp[standard]
 fastapi[standard]
 uvicorn[standard]
