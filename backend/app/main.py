@@ -17,7 +17,6 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=lo
 
 #create database
 models.Base.metadata.create_all(bind=engine)
-Database = SessionLocal()
 
 app = FastAPI(
     title=APP_NAME,

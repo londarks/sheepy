@@ -2,7 +2,7 @@ from typing import List, Union
 from pydantic import BaseModel
 
 
-class Register(BaseModel):
+class UserRegister(BaseModel):
     name: str
     address: str
     email: str

@@ -1,6 +1,7 @@
 *.db
 *.egg-info
 *.session
+backup.py
 build/
 dist/
 node_modules/
