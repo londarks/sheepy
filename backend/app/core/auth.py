@@ -54,7 +54,7 @@ def create_refresh_token(user_id: int) -> str:
     Returns:
         str: Token de atualização JWT codificado.
     """
-    expire = datetime.datetime.utcnow() + datetime.timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
     payload: Dict[str, Union[str, int, float]] = {"sub": str(user_id), "exp": expire}
     encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
     return encoded_jwt
@@ -91,7 +91,7 @@ def is_token_expired(token: str) -> bool:
     decoded_token = decode_token(token)
     if decoded_token and 'exp' in decoded_token:
         exp_timestamp = decoded_token['exp']
-        return datetime.datetime.utcnow() > datetime.datetime.fromtimestamp(exp_timestamp)
+        return datetime.utcnow() > datetime.fromtimestamp(exp_timestamp)
     return True
 
 

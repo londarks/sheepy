@@ -10,13 +10,6 @@ def get_all_user(db: Session):
         raise ValueError("empty database")
     return users
 
-def get_user_by_email_register(db: Session, email: str) -> models.User:
-    """ Get user by id in database """
-    user = db.query(models.User).filter(models.User.email == email).first()
-    if user:
-        raise ValueError("User already existsd")
-    return user
-
 def get_user_by_email(db: Session, email: str) -> models.User:
     """ Get user by id in database """
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -25,29 +18,33 @@ def get_user_by_email(db: Session, email: str) -> models.User:
     return user
 
 
-def create_jwt(db: Session, register: schemas.UserRegister) -> models.User:
-    """Create a new user in the database.
+def create_jwt(db: Session, user_id: int, access_token: str, refresh_token: str) -> models.Token:
+    """Create a new JWT token and store it in the database.
 
     Args:
-        db: The database session.
-        register: The user registration information.
+        session: The database session.
+        user_id: The ID of the user associated with the token.
+        access_token: The JWT access token.
+        refresh_token: The JWT refresh token.
 
     Returns:
-        The created user object.
+        The created token object.
     """
-    db_user = models.User(
-        name=register.name,
-        address=register.address,
-        email=register.email,
-        phone=register.phone,
-        password=register.password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    try:
+        token = models.Token(
+            user_id=user_id,
+            access_token=access_token,
+            refresh_token=refresh_token
+        )
+        db.add(token)
+        db.commit()
+        db.refresh(token)
+        return token
+    except Exception as e:
+        db.rollback()
+        raise e
 
-def create_user(db: Session, register: schemas.UserRegister) -> models.User:
+def create_user(db: Session, register: schemas.UserCreate) -> models.User:
     """Create a new user in the database.
 
     Args:

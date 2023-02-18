@@ -1,15 +1,29 @@
 import logging
-import utilities as  schemas
-from fastapi import APIRouter
-from core import PasswordManager, jwt_token_required, create_jwt_token
+from utilities import  UserCreate, Login, create_user
+from fastapi import APIRouter, Depends, status
+from core import jwt_token_required, create_jwt_token, create_refresh_token
 #database
 from database import  crud
 from database.connection import SessionLocal
+from sqlalchemy.orm import Session
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 router = APIRouter()
-Database = SessionLocal()
+
+def get_database_session() -> Session:
+    """
+    Retorna uma sessão de banco de dados para ser usada em um contexto com.
+
+    Returns:
+        Uma sessão de banco de dados.
+    """
+    database = SessionLocal()
+    try:
+        yield database
+    finally:
+        if not database.is_active:
+            database.close()
 
 @router.get("/", tags=["Sheepy"])
 @jwt_token_required
@@ -17,20 +31,13 @@ async def home(payload: dict):
     return {"message": "home from api"}
 
 @router.post("/auth/login", tags=["Sheepy"])
-async def login(register: schemas.Login):
+async def login(register: Login):
     """ Teste function"""
     return {"message": "login!"}
 
 
-@router.post("/signup", tags=["Sheepy"])
-async def register(register: schemas.UserRegister):
+@router.post("/signup",status_code=status.HTTP_201_CREATED, tags=["Sheepy"])
+async def register(register: UserCreate, Database: str = Depends(get_database_session)):
     """ Teste function"""
-    try:
-        crud.get_user_by_email_register(db=Database, email=register.email)
-        register.password = PasswordManager.hash_password(password=register.password)
-        crud.create_user(db=Database, register=register)
-        user = crud.get_user_by_email(db=Database, email=register.email)
-        token = create_jwt_token(user_id=user.id)
-        return {'bearer': token}
-    except ValueError as e:
-        return {'error': f'{e}'}
+    token = create_user(Database=Database, user=register)
+    return token
