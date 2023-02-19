@@ -1,13 +1,22 @@
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Request
 from fastapi import  Depends, HTTPException, status
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
+import utilities as  schemas
+
 from datetime import datetime, timedelta
-from typing import Dict, Any, Union, Optional
+from typing import Dict, Any, Union, Callable
 import jwt
+
+#database
+from database import  crud
+from database.connection import SessionLocal
+from sqlalchemy.orm import Session
 
 # Chave secreta usada para assinar o token JWT
 SECRET_KEY = "mysecretkey"
+ALGORITHM = "HS256"
 
 # Duração do tempo de validade do token JWT (em minutos)
 TOKEN_EXPIRATION_MINUTES = 30
@@ -15,6 +24,45 @@ REFRESH_TOKEN_EXPIRE_DAYS = 30
 
 security = HTTPBearer()
 
+
+def get_database_session() -> Session:
+    """
+    Retorna uma sessão de banco de dados para ser usada em um contexto com.
+
+    Returns:
+        Uma sessão de banco de dados.
+    """ 
+    database = SessionLocal()
+    try:
+        yield database
+    finally:
+        if not database.is_active:
+            database.close()
+
+def check_jwt_token(func: Callable):
+    async def wrapper(request: Request, db: Session = Depends(get_database_session), **kwargs):
+        try:
+            token = request.headers.get('Authorization').split('Bearer ')[1]
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            if is_token_expired(token=token):
+
+                tokens = schemas.update_tokens(database=db, user=payload['sub'])
+                user_id = payload.get('sub')
+                new_token = create_jwt_token(user_id)
+                response = JSONResponse({'access_token': new_token})
+                response.set_cookie(key='access_token', value=new_token, httponly=True, secure=True, max_age=1800)
+                print("gerou um novo")
+                return response
+            
+                #return await func(request, register)
+            
+        except Exception as e:
+            print(e)
+            #raise HTTPException(status_code=401, detail='Invalid token')
+        print(kwargs)
+        return await func(request, db, kwargs)
+
+    return wrapper
 
 
 # Decorator para verificar se o token JWT é válido
